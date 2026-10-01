@@ -3,8 +3,11 @@ package proxy
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"net"
 	"sync"
 	"time"
 
@@ -72,7 +75,11 @@ func (p *Proxy) Serve(ctx context.Context) error {
 		conn := raw.(*minecraft.Conn)
 		go func() {
 			if err := p.serveClient(ctx, conn); err != nil {
-				p.cfg.Log.Error("proxy session closed", "player", conn.IdentityData().DisplayName, "err", err)
+				level := slog.LevelError
+				if connectionGone(err) {
+					level = slog.LevelDebug
+				}
+				p.cfg.Log.Log(ctx, level, "proxy session closed", "player", conn.IdentityData().DisplayName, "err", err)
 			}
 		}()
 	}
@@ -113,4 +120,10 @@ func (p *Proxy) Close() error {
 		err = p.listener.Close()
 	})
 	return err
+}
+
+// connectionGone reports whether err only says that the client or the backend went away, which is how
+// every session ends and not worth an error.
+func connectionGone(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, net.ErrClosed) || errors.Is(err, io.EOF)
 }
