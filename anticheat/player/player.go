@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"runtime"
 	"sync"
 	"time"
 
@@ -446,6 +447,10 @@ func (p *Player) SetLog(log *slog.Logger) {
 func (p *Player) Disconnect(reason string) {
 	if p.MState.IsReplay {
 		panic(fmt.Errorf("replay terminated: %v", reason))
+	}
+	if log := p.log; log != nil {
+		_, file, line, _ := runtime.Caller(1)
+		log.Warn("disconnecting player", "reason", reason, "from", fmt.Sprintf("%s:%d", file, line))
 	}
 	p.SendPacketToClient(&packet.Disconnect{
 		Message:         reason,
