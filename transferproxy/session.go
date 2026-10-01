@@ -98,10 +98,10 @@ func (s *session) run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	errCh := make(chan error, 2)
-	go func() { errCh <- s.backendLoop(ctx) }()
+	go func() { errCh <- s.endedBy("backend", s.backendLoop(ctx)) }()
 	if s.starting {
 		startCh := make(chan error, 1)
-		go func() { startCh <- s.start(ctx) }()
+		go func() { startCh <- s.endedBy("start", s.start(ctx)) }()
 		select {
 		case err := <-startCh:
 			if err != nil {
@@ -113,13 +113,20 @@ func (s *session) run(ctx context.Context) error {
 			return ctx.Err()
 		}
 	}
-	go func() { errCh <- s.clientLoop() }()
+	go func() { errCh <- s.endedBy("client", s.clientLoop()) }()
 	select {
 	case err := <-errCh:
 		return err
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func (s *session) endedBy(side string, err error) error {
+	if err != nil {
+		s.proxy.cfg.Log.Debug("session part ended", "player", s.identity.DisplayName, "side", side, "err", err)
+	}
+	return err
 }
 
 func (s *session) clientLoop() error {
