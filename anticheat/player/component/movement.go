@@ -131,6 +131,10 @@ type AuthoritativeMovementComponent struct {
 
 	allowedInputs int64
 	hasFirstInput bool
+	// inputSlack absorbs inputs arriving ahead of the server tick because of network or frame jitter. It
+	// refills by one every inputSlackInterval ticks up to inputSlackCap, bounding a timer to a negligible gain.
+	inputSlack      int64
+	inputSlackTicks int64
 
 	pendingCorrections   int
 	inCorrectionCooldown bool
@@ -146,12 +150,22 @@ func NewAuthoritativeMovementComponent(p *player.Player) *AuthoritativeMovementC
 }
 
 // InputAcceptable returns true if the input is within the rate-limit Oomph has imposed for the player.
+const (
+	inputSlackInterval = 40
+	inputSlackCap      = 4
+)
+
 func (mc *AuthoritativeMovementComponent) InputAcceptable() bool {
 	if !mc.hasFirstInput {
 		mc.hasFirstInput = true
 	}
 
 	if mc.allowedInputs <= 0 {
+		if mc.inputSlack > 0 {
+			mc.inputSlack--
+			mc.mPlayer.Dbg.Notify(player.DebugModeTimer, true, "input accepted from slack, %d left (cT=%d sT=%d)", mc.inputSlack, mc.mPlayer.SimulationFrame, mc.mPlayer.ServerTick)
+			return true
+		}
 		mc.mPlayer.Dbg.Notify(player.DebugModeTimer, true, "no allowed inputs remaining (cT=%d sT=%d)", mc.mPlayer.SimulationFrame, mc.mPlayer.ServerTick)
 		return false
 	}
@@ -164,6 +178,12 @@ func (mc *AuthoritativeMovementComponent) Tick(elapsedTicks int64) {
 	if !mc.hasFirstInput {
 		mc.allowedInputs = 65535
 		return
+	}
+
+	mc.inputSlackTicks += elapsedTicks
+	for mc.inputSlackTicks >= inputSlackInterval {
+		mc.inputSlackTicks -= inputSlackInterval
+		mc.inputSlack = min(mc.inputSlack+1, inputSlackCap)
 	}
 
 	latencyAllowance := mc.mPlayer.ServerTick - mc.mPlayer.ClientTick
@@ -1118,6 +1138,8 @@ func (mc *AuthoritativeMovementComponent) ResetTransferState(pos mgl32.Vec3) {
 
 	mc.allowedInputs = 65535
 	mc.hasFirstInput = false
+	mc.inputSlack = 0
+	mc.inputSlackTicks = 0
 
 	mc.pendingCorrections = 0
 	mc.inCorrectionCooldown = false
