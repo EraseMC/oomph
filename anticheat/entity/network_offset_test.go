@@ -51,3 +51,15 @@ func TestEntityUpdateMetadataRefreshesNetworkOffset(t *testing.T) {
 		t.Fatalf("swimming network offset = %v, want %v", e.NetworkOffset, float32(0.4))
 	}
 }
+
+func TestNewEntityPosition(t *testing.T) {
+	network := New(Config{Type: TypePlayer, NetworkPosition: mgl32.Vec3{0, 101.62001, 0}, HistorySize: 4, IsPlayer: true})
+	if network.Position.Y() != 100 {
+		t.Fatalf("network position y = %v, want 100", network.Position.Y())
+	}
+
+	feet := New(Config{Type: TypePlayer, NetworkPosition: mgl32.Vec3{0, 100, 0}, FeetPosition: true, HistorySize: 4, IsPlayer: true})
+	if feet.Position.Y() != 100 {
+		t.Fatalf("feet position y = %v, want 100", feet.Position.Y())
+	}
+}

@@ -404,6 +404,7 @@ func (p *Player) handleServerPacket(ctx *context.HandlePacketContext) {
 			Type:            entity.TypePlayer,
 			Metadata:        pk.EntityMetadata,
 			NetworkPosition: pk.Position,
+			FeetPosition:    true,
 			IsPlayer:        true,
 			Width:           width,
 			Height:          height,

@@ -58,8 +58,11 @@ type Config struct {
 	Metadata map[uint32]any
 
 	NetworkPosition mgl32.Vec3
-	HistorySize     int
-	IsPlayer        bool
+	// FeetPosition reports that NetworkPosition is already at the entity's feet. AddPlayer is sent this way,
+	// unlike AddActor and the movement packets which carry the network offset.
+	FeetPosition bool
+	HistorySize  int
+	IsPlayer     bool
 
 	Width, Height, Scale float32
 
@@ -74,7 +77,9 @@ func New(c Config) *Entity {
 	}
 	offset := networkOffset(c.Type, metadata)
 	pos := c.NetworkPosition
-	pos[1] -= offset
+	if !c.FeetPosition {
+		pos[1] -= offset
+	}
 
 	e := &Entity{
 		RuntimeId: c.RuntimeID,
