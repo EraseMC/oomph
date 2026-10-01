@@ -22,6 +22,10 @@ func (p *Player) initOomphCommand(pk *packet.AvailableCommands) {
 		}
 	}
 
+	if len(overloads) == 0 {
+		return
+	}
+
 	pk.Commands = append(pk.Commands, protocol.Command{
 		Name:                     oconfig.Global.CommandName,
 		Description:              oconfig.Global.CommandDescription,
