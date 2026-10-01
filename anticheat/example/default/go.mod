@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/oomph-ac/oomph/anticheat v0.0.0-20260208201834-bff025a3d827
-	github.com/sandertv/gophertunnel v1.61.0
+	github.com/sandertv/gophertunnel v1.62.0
 )
 
 require (
@@ -19,7 +19,7 @@ require (
 	github.com/df-mc/go-xsapi/v2 v2.0.3 // indirect
 	github.com/df-mc/goleveldb v1.1.9 // indirect
 	github.com/df-mc/jsonc v1.0.5 // indirect
-	github.com/df-mc/worldupgrader v1.0.21 // indirect
+	github.com/df-mc/worldupgrader v1.0.22 // indirect
 	github.com/ethaniccc/float32-cube v0.0.0-20250511224129-7af1f8c4ee12 // indirect
 	github.com/go-gl/mathgl v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
@@ -62,7 +62,7 @@ replace github.com/oomph-ac/oomph/anticheat => ../..
 
 replace github.com/oomph-ac/oomph/transferproxy => ../../../transferproxy
 
-replace github.com/df-mc/dragonfly => github.com/oomph-ac/dragonfly v0.0.0-20260904153233-9221758c1eee
+replace github.com/df-mc/dragonfly => github.com/EraseMC/dragonfly v0.0.0-20261001183901-0c580bde200e
 
 replace github.com/sandertv/go-raknet => ../../../go-raknet
 
